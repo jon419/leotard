@@ -13,8 +13,18 @@ self.addEventListener('install', event => {
   );
 });
 
+// UPDATED FETCH LISTENER
 self.addEventListener('fetch', event => {
+  // If the request is NOT for our own website (e.g., Unsplash images), 
+  // do not intercept it. Let the browser handle it normally.
+  if (!event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
+  // Otherwise, serve from cache if available, or fetch from network
   event.respondWith(
-    caches.match(event.request).then(response => response || fetch(event.request))
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request);
+    })
   );
 });
