@@ -23,16 +23,26 @@ body, html {
 }
 
 .content {
-    position: relative; 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 2; 
-    height: 100%;
     display: flex; 
     flex-direction: column; 
     align-items: center; 
     justify-content: center;
     text-align: center; 
     color: white; 
-    padding: 20px;
+    
+    /* New Semi-Transparent Box Settings */
+    background: rgba(0, 0, 0, 0.65); 
+    padding: 40px 20px;
+    border-radius: 16px;
+    backdrop-filter: blur(8px); 
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .subtitle {
