@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.style.backgroundImage = `url('${randomImage}')`;
 
     // 2. Calculate Weekly Rotation
-    const epochDate = new Date('2026-10-12T00:00:00'); // Starting Monday
+    const epochDate = new Date('2026-10-11T00:00:00'); // Starting Monday
     const currentDate = new Date();
 
     const diffTime = currentDate.getTime() - epochDate.getTime();
