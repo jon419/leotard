@@ -1,4 +1,4 @@
-const CACHE_NAME = 'leotard-cache-v1';
+const CACHE_NAME = 'leotard-cache-v3';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -8,23 +8,54 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then(cache =>
+      cache.addAll(urlsToCache.map(url => new Request(url, { cache: 'reload' })))
+    )
   );
 });
 
-// UPDATED FETCH LISTENER
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      const oldCaches = cacheNames.filter(name => name !== CACHE_NAME);
+      const hadOldCache = oldCaches.length > 0;
+      return Promise.all(oldCaches.map(name => caches.delete(name)))
+        .then(() => self.clients.claim())
+        .then(() => {
+          if (hadOldCache) {
+            return self.clients.matchAll({ type: 'window' }).then(clients => {
+              clients.forEach(client => {
+                if ('navigate' in client) {
+                  client.navigate(client.url);
+                }
+              });
+            });
+          }
+        });
+    })
+  );
+});
+
+// Network-first strategy: always try to get the freshest files when online,
+// falling back to cache only when offline.
 self.addEventListener('fetch', event => {
-  // If the request is NOT for our own website (e.g., Unsplash images), 
-  // do not intercept it. Let the browser handle it normally.
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
 
-  // Otherwise, serve from cache if available, or fetch from network
   event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
+    fetch(event.request, { cache: 'no-store' })
+      .then(networkResponse => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
